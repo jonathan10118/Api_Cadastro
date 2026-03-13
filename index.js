@@ -14,12 +14,12 @@ CLIENTES ENDPOINTS
 const clientesfile = path.join(__dirname, "clientes.json");
 
 function lerClientes(){
-    if(!fs.existsSync(clientesFile)){
+    if(!fs.existsSync(clientesfile)){
         return [];
 
     }
     
-    const dados = fs.readFileSync(clientesFile, 'utf8');    
+    const dados = fs.readFileSync(clientesfile, 'utf8');    
 
     try{
       return JSON.parse(dados);
@@ -28,13 +28,13 @@ function lerClientes(){
     }
 }
 function salvarClientes(clientes){
-    fs.writeFileSync( clientesFile, JSON.stringify(clientes, null, 2), 'utf8');
+    fs.writeFileSync( clientesfile, JSON.stringify(clientes, null, 2), 'utf8');
 }
 app.post('/clientes', (req, res)=>{
     const {cpf, nome,idade, endereco, bairro,contato} = req.body;
 
-    if (!cpf || nome || idade || endereco || bairro || contato) {
-        return res.status(400).json({ error: 'CPF ja cadastrado' });
+    if (!cpf || !nome || !idade || !endereco || !bairro || !contato) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
     const clientes = lerClientes();
  
