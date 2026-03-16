@@ -48,7 +48,10 @@ app.post('/clientes', (req, res)=>{
     res.status(200).send({ message: 'Cliente cadastrado com sucesso', cliente: novoCliente });
 });
 
-
+app.get('/clientes', (req, res) => {
+    const clientes= lerclientes();
+    res.status(200).json(clientes);
+});
 
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
