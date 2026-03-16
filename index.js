@@ -49,7 +49,7 @@ app.post('/clientes', (req, res)=>{
 });
 
 app.get('/clientes', (req, res) => {
-    const clientes= lerclientes();
+    const clientes= lerClientes();
     res.status(200).json(clientes);
 });
 
