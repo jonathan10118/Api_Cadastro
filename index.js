@@ -46,7 +46,6 @@ app.get('/clientes', (req, res) => {
     res.json(lerDados('clientes'));
 });
 
-<<<<<<< HEAD
 app.post('/clientes', (req, res) => {
     const { cpf, nome, idade, endereco, bairro, contato } = req.body;
 
@@ -142,12 +141,6 @@ app.get('/produtos/:id', (req, res) => {
     res.json(produto);
 });
 // --- INICIALIZAÇÃO ---
-=======
-app.get('/clientes', (req, res) => {
-    const clientes= lerclientes();
-    res.status(200).json(clientes);
-});
->>>>>>> 8a5c80981e5475aca3463e9a54bf5d361e6aa574
 
 app.listen(port, () => {
     console.log(`🚀 Servidor rodando em http://localhost:${port}`);
