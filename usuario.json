@@ -1,0 +1,14 @@
+[
+  {
+    "codigo": "123",
+    "nome": "Usuario 1",
+    "email": "usuario1@email.com",
+    "senha": "senha123"
+  },
+  {
+    "codigo": "789",
+    "nome": "Usuario 2", 
+    "email": "usuario2@email.com",
+    "senha": "senha789"
+  }
+]

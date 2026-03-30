@@ -9,7 +9,7 @@ app.use(express.json());
 
 // --- CONFIGURAÇÃO DE CAMINHOS ---
 const BANCO_DADOS = {
-    clientes: path.join(__dirname, 'clientes.json'),
+    usuario: path.join(__dirname, 'usuario.json'),
     produtos: path.join(__dirname, 'produtos.json')
 };
 
@@ -40,38 +40,36 @@ function salvarDados(tipo, objeto) {
     }
 }
 
-// --- ROTAS DE CLIENTES ---
+// --- ROTAS DE USUARIO ---
 
-app.get('/clientes', (req, res) => {
-    res.json(lerDados('clientes'));
+app.get('/usuario', (req, res) => {
+    res.json(lerDados('usuario'));
 });
 
-app.post('/clientes', (req, res) => {
-    const { cpf, nome, idade, endereco, bairro, contato } = req.body;
+app.post('/usuario', (req, res) => {
+    const { codigo, nome, email, senha } = req.body;
 
-    if (!cpf || !nome || !idade) {
-        return res.status(400).json({ error: 'Dados essenciais faltando (CPF, Nome, Idade)' });
+    if (!codigo || !nome || !email || !senha) {
+        return res.status(400).json({ error: 'Dados essenciais faltando (Código, Nome, Email, Senha)' });
     }
 
-    const clientes = lerDados('clientes');
-    if (clientes.some(c => String(c.cpf) === String(cpf))) {
-        return res.status(400).json({ error: 'Este CPF já está cadastrado.' });
+    const usuarios = lerDados('usuario');
+    if (usuarios.some(u => String(u.codigo) === String(codigo))) {
+        return res.status(400).json({ error: 'Este código já está cadastrado.' });
     }
 
-    const novoCliente = { 
-        cpf: String(cpf), 
+    const novoUsuario = { 
+        codigo: String(codigo), 
         nome, 
-        idade: Number(idade), 
-        endereco, 
-        bairro, 
-        contato 
+        email, 
+        senha 
     };
 
-    clientes.push(novoCliente);
-    if (salvarDados('clientes', clientes)) {
-        res.status(201).json({ mensagem: 'Cliente cadastrado!', cliente: novoCliente });
+    usuarios.push(novoUsuario);
+    if (salvarDados('usuario', usuarios)) {
+        res.status(201).json({ mensagem: 'Usuário cadastrado!', usuario: novoUsuario });
     } else {
-        res.status(500).json({ error: 'Erro ao salvar cliente.' });
+        res.status(500).json({ error: 'Erro ao salvar usuário.' });
     }
 });
 
@@ -119,15 +117,15 @@ app.get('/produtos/:id', (req, res) => {
 
 // --- ROTAS DE BUSCA ESPECÍFICA ---
 
-// Busca cliente individual por CPF
-app.get('/clientes/:cpf', (req, res) => {
-    const clientes = lerDados('clientes');
-    const cliente = clientes.find(c => String(c.cpf) === String(req.params.cpf));
+// Busca usuário individual por código
+app.get('/usuario/:codigo', (req, res) => {
+    const usuarios = lerDados('usuario');
+    const usuario = usuarios.find(u => String(u.codigo) === String(req.params.codigo));
     
-    if (!cliente) {
-        return res.status(404).json({ error: 'Cliente não encontrado.' });
+    if (!usuario) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
-    res.json(cliente);
+    res.json(usuario);
 });
 
 // Busca produto individual por ID (Caso queira reforçar ou substituir a existente)
@@ -144,5 +142,5 @@ app.get('/produtos/:id', (req, res) => {
 
 app.listen(port, () => {
     console.log(`🚀 Servidor rodando em http://localhost:${port}`);
-    console.log(`📂 Arquivos: ${BANCO_DADOS.clientes} e ${BANCO_DADOS.produtos}`);
+    console.log(`📂 Arquivos: ${BANCO_DADOS.usuario} e ${BANCO_DADOS.produtos}`);
 });
