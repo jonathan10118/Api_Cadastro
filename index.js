@@ -1,187 +1,107 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const express = require('express'); 
+const fs = require('fs'); 
+const path = require('path'); 
+//const cors = require('cors'); 
 
 const app = express();
 const port = 3000;
-
+//app.use(cors());
 app.use(express.json());
 
-// --- CONFIGURAÇÃO DE CAMINHOS ---
-const BANCO_DADOS = {
-    clientes: path.join(__dirname, 'clientes.json'),
-    produtos: path.join(__dirname, 'produtos.json'),
-    usuarios: path.join(__dirname, 'usuarios.json')
-};
+// Servir arquivos estáticos da pasta atual
+app.use(express.static(__dirname));
 
+// --- CONFIGURAÇÃO DE ARQUIVOS ---
+const clientesFile = path.join(__dirname, 'clientes.json');
+const usuariosFile = path.join(__dirname, 'usuarios.json'); 
+const produtosFile = path.join(__dirname, 'produtos.json'); // Caminho para produtos
 
-// --- FUNÇÕES AUXILIARES UNIVERSAIS ---
-
-// Lê qualquer arquivo JSON baseado na chave (clientes ou produtos)
-function lerDados(tipo) {
-    try {
-        const arquivo = BANCO_DADOS[tipo];
-        if (!fs.existsSync(arquivo)) return [];
-        const dados = fs.readFileSync(arquivo, 'utf8');
-        return JSON.parse(dados || '[]');
-    } catch (e) {
-        console.error(`Erro ao ler ${tipo}:`, e);
-        return [];
-    }
+// --- FUNÇÕES AUXILIARES (CLIENTES) ---
+function lerClientes() {
+    if (!fs.existsSync(clientesFile)) return [];
+    const dados = fs.readFileSync(clientesFile, 'utf8');
+    try { return JSON.parse(dados) || []; } catch (e) { return []; }
+}
+function salvarClientes(clientes) {
+    fs.writeFileSync(clientesFile, JSON.stringify(clientes, null, 2), 'utf-8');
 }
 
-// Salva qualquer array no arquivo correspondente
-function salvarDados(tipo, objeto) {
-    try {
-        const arquivo = BANCO_DADOS[tipo];
-        fs.writeFileSync(arquivo, JSON.stringify(objeto, null, 2), 'utf-8');
-        return true;
-    } catch (e) {
-        console.error(`Erro ao salvar ${tipo}:`, e);
-        return false;
-    }
+// --- FUNÇÕES AUXILIARES (USUÁRIOS) ---
+function lerUsuarios() {
+    if (!fs.existsSync(usuariosFile)) return [];
+    const dados = fs.readFileSync(usuariosFile, 'utf8');
+    try { return JSON.parse(dados) || []; } catch (e) { return []; }
+}
+function salvarUsuarios(usuarios) {
+    fs.writeFileSync(usuariosFile, JSON.stringify(usuarios, null, 2), 'utf-8');
 }
 
-// --- ROTAS DE CLIENTES ---
+// --- FUNÇÕES AUXILIARES (PRODUTOS) ---
+function lerProdutos() {
+    if (!fs.existsSync(produtosFile)) return [];
+    const dados = fs.readFileSync(produtosFile, 'utf8');
+    try { return JSON.parse(dados) || []; } catch (e) { return []; }
+}
+function salvarProdutos(produtos) {
+    fs.writeFileSync(produtosFile, JSON.stringify(produtos, null, 2), 'utf-8');
+}
 
-app.get('/clientes', (req, res) => {
-    res.json(lerDados('clientes'));
-});
+/*
+  USUÁRIOS ENDPOINTS
+*/
 
-app.post('/clientes', (req, res) => {
-    const { cpf, nome, idade, endereco, bairro, contato } = req.body;
-
-    if (!cpf || !nome || !idade) {
-        return res.status(400).json({ error: 'Dados essenciais faltando (CPF, Nome, Idade)' });
-    }
-
-    const clientes = lerDados('clientes');
-    if (clientes.some(c => String(c.cpf) === String(cpf))) {
-        return res.status(400).json({ error: 'Este CPF já está cadastrado.' });
-    }
-
-    const novoCliente = { 
-        cpf: String(cpf), 
-        nome, 
-        idade: Number(idade), 
-        endereco, 
-        bairro, 
-        contato 
-    };
-
-    clientes.push(novoCliente);
-    if (salvarDados('clientes', clientes)) {
-        res.status(201).json({ mensagem: 'Cliente cadastrado!', cliente: novoCliente });
-    } else {
-        res.status(500).json({ error: 'Erro ao salvar cliente.' });
-    }
-    // Busca cliente individual por CPF
-app.get('/clientes/:cpf', (req, res) => {
-    const clientes = lerDados('clientes');
-    const cliente = clientes.find(c => String(c.cpf) === String(req.params.cpf));
-    
-    if (!cliente) {
-        return res.status(404).json({ error: 'Cliente não encontrado.' });
-    }
-    res.json(cliente);
-});
-});
-
-// --- ROTAS DE PRODUTOS ---
-
-app.get('/produtos', (req, res) => {
-    res.json(lerDados('produtos'));
-});
-
-app.post('/produtos', (req, res) => {
-    const { id, nome, preco, estoque } = req.body;
-
-    if (!id || !nome || !preco) {
-        return res.status(400).json({ error: 'Dados essenciais faltando (ID, Nome, Preço)' });
-    }
-
-    const produtos = lerDados('produtos');
-    if (produtos.some(p => String(p.id) === String(id))) {
-        return res.status(400).json({ error: 'Este ID de produto já existe.' });
-    }
-
-    const novoProduto = { 
-        id: String(id), 
-        nome, 
-        preco: Number(preco), 
-        estoque: Number(estoque) || 0 
-    };
-
-    produtos.push(novoProduto);
-    if (salvarDados('produtos', produtos)) {
-        res.status(201).json({ mensagem: 'Produto cadastrado!', produto: novoProduto });
-    } else {
-        res.status(500).json({ error: 'Erro ao salvar produto.' });
-    }
-});
-
-// Busca produto individual por ID
-app.get('/produtos/:id', (req, res) => {
-    const produtos = lerDados('produtos');
-    const produto = produtos.find(p => String(p.id) === String(req.params.id));
-    
-    if (!produto) return res.status(404).json({ error: 'Produto não encontrado' });
-    res.json(produto);
-});
-
-// --- ROTAS DE BUSCA ESPECÍFICA ---
-
-// --- ROTAS DE USUÁRIOS ---
-
-// Listar usuários
-app.get('/usuarios', (req, res) => {
-    res.json(lerDados('usuarios'));
-});
-
-// Cadastrar usuário
 app.post('/usuarios', (req, res) => {
-    const { id, nome, email, senha } = req.body;
+    const { codigo, nome, email, senha } = req.body;
 
-    if (!id || !nome || !email || !senha) {
-        return res.status(400).json({ error: 'Dados obrigatórios: id, nome, email, senha' });
+    // Validação de campos
+    if (!codigo || !nome || !email || !senha) {
+        return res.status(400).json({ error: 'Código, Nome, Email e Senha são obrigatórios' });
     }
 
-    const usuarios = lerDados('usuarios');
+    // Validação do formato da senha (simplificada)
+    if (senha.length < 6) {
+        return res.status(400).json({ 
+            error: 'A senha deve ter no mínimo 6 caracteres' 
+        });
+    }
 
-    // Verifica se email já existe
+    const usuarios = lerUsuarios();
+
+    // Verifica se o código ou email já existem
+    if (usuarios.some(u => u.codigo === codigo)) {
+        return res.status(400).json({ error: 'Código de usuário já cadastrado' });
+    }
     if (usuarios.some(u => u.email === email)) {
-        return res.status(400).json({ error: 'Email já cadastrado.' });
+        return res.status(400).json({ error: 'Email já cadastrado' });
     }
 
-    const novoUsuario = {
-        id: String(id),
-        nome,
-        email,
-        senha
-    };
+    const novoUsuario = { codigo, nome, email, senha };
 
     usuarios.push(novoUsuario);
+    salvarUsuarios(usuarios);
 
-    if (salvarDados('usuarios', usuarios)) {
-        res.status(201).json({ mensagem: 'Usuário cadastrado!', usuario: novoUsuario });
-    } else {
-        res.status(500).json({ error: 'Erro ao salvar usuário.' });
-    }
+    res.status(201).json({ 
+        mensagem: 'Usuário cadastrado com sucesso', 
+        usuario: { codigo, nome, email } // Retornamos sem a senha por segurança
+    });
 });
 
-// Buscar usuário por ID
-app.get('/usuarios/:id', (req, res) => {
-    const usuarios = lerDados('usuarios');
-    const usuario = usuarios.find(u => String(u.id) === String(req.params.id));
-
-    if (!usuario) {
-        return res.status(404).json({ error: 'Usuário não encontrado.' });
-    }
-
-    res.json(usuario);
+app.get("/usuarios", (req, res) => {
+    const usuarios = lerUsuarios();
+    // Mapeamos para não enviar a senha no GET geral
+    const listaSegura = usuarios.map(({ senha, ...resto }) => resto);
+    res.status(200).json(listaSegura);
 });
 
-// Login
+app.get("/usuarios/ordenados", (req, res) => {
+    const usuarios = lerUsuarios();
+    // Mapeamos para não enviar a senha e ordenamos por nome
+    const listaSegura = usuarios
+        .map(({ senha, ...resto }) => resto)
+        .sort((a, b) => a.nome.localeCompare(b.nome));
+    res.status(200).json(listaSegura);
+});
+
 app.post('/login', (req, res) => {
     const { email, senha } = req.body;
 
@@ -189,37 +109,117 @@ app.post('/login', (req, res) => {
         return res.status(400).json({ error: 'Email e senha são obrigatórios' });
     }
 
-    const usuarios = lerDados('usuarios');
+    const usuarios = lerUsuarios();
+    const usuario = usuarios.find(u => u.email === email);
 
-    const usuario = usuarios.find(
-        u => u.email === email && u.senha === senha
-    );
-
-    if (!usuario) {
-        return res.status(401).json({ error: 'Email ou senha incorretos' });
+    if (!usuario || usuario.senha !== senha) {
+        return res.status(401).json({ error: 'senha ou email incorretos' });
     }
 
-    res.status(200).json({
-        mensagem: 'Login realizado com sucesso',
-        usuario
+    res.status(200).json({ 
+        mensagem: 'Login realizado com sucesso', 
+        usuario: { codigo: usuario.codigo, nome: usuario.nome, email: usuario.email }
     });
 });
 
+/*
+  PRODUTOS ENDPOINTS
+*/
 
-app.post('/login',(req, res)=>{ 
+app.post('/produtos', (req, res) => {
+    const { id, nome, preco, estoque } = req.body;
 
-    const { email, senha } = read.body;
-    const usuarios = lerUsuarios();
-    const usuario = usuarios.find(u => u.email === email && u.senha === senha);
-    
-    if (!usuario){
-        return res.status(401).json({error: 'Email ou senha incorreto'});
+    if (!id || !nome || !preco || !estoque) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
-     res.status(200).json({message:'login realizado com sucesso', usuario});
 
+    const produtos = lerProdutos();
+    if (produtos.some(p => p.id === id)) {
+        return res.status(400).json({ error: 'Código já cadastrado' });
+    }
+
+    // Validar que preco e estoque são números
+    if (isNaN(preco) || isNaN(estoque)) {
+        return res.status(400).json({ error: 'Preço e estoque devem ser números' });
+    }
+
+    const novoProduto = { id, nome, preco: Number(preco), estoque: Number(estoque) };
+    produtos.push(novoProduto);
+    salvarProdutos(produtos);
+    res.status(201).json({ mensagem: 'Produto cadastrado com sucesso', produto: novoProduto });
+});
+
+app.get("/produtos", (req, res) => {
+    const produtos = lerProdutos();
+    res.status(200).json(produtos);
+});
+
+app.get("/produtos/ordenados", (req, res) => {
+    const produtos = lerProdutos();
+    // Ordenar por nome
+    const produtosOrdenados = produtos.sort((a, b) => a.nome.localeCompare(b.nome));
+    res.status(200).json(produtosOrdenados);
+});
+
+app.get("/produtos/:id", (req, res) => {
+    const { id } = req.params;
+    const produtos = lerProdutos();
+    const produto = produtos.find(p => p.id === id);
+    if (!produto) {
+        return res.status(404).json({ error: 'Produto não encontrado' });
+    }
+    res.status(200).json(produto);
+});
+
+/*
+  CLIENTES ENDPOINTS (Mantidos)
+*/
+
+app.post('/clientes', (req, res) => {
+    const { cpf, nome, idade, endereco, bairro, contato } = req.body;
+    if (!cpf || !nome || !idade || !endereco || !bairro || !contato) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+    }
+
+    const clientes = lerClientes();
+    if (clientes.some(c => c.cpf === cpf)) {
+        return res.status(400).json({ error: 'CPF já cadastrado' });
+    }
+
+    // Validar que idade é número
+    if (isNaN(idade)) {
+        return res.status(400).json({ error: 'Idade deve ser um número' });
+    }
+
+    const novoCliente = { cpf, nome, idade: Number(idade), endereco, bairro, contato };
+    clientes.push(novoCliente);
+    salvarClientes(clientes);
+    res.status(201).json({ mensagem: 'Cliente cadastrado com sucesso', cliente: novoCliente });
+});
+
+app.get("/clientes", (req, res) => {
+    const clientes = lerClientes();
+    res.status(200).json(clientes);
+});
+
+app.get("/clientes/ordenados", (req, res) => {
+    const clientes = lerClientes();
+    // Ordenar por nome
+    const clientesOrdenados = clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+    res.status(200).json(clientesOrdenados);
+});
+
+app.get("/clientes/:cpf", (req, res) => {
+    const { cpf } = req.params;
+    const clientes = lerClientes();
+    const cliente = clientes.find(c => c.cpf === cpf);
+    if (!cliente) {
+        return res.status(404).json({ error: 'Cliente não encontrado' });
+    }
+    res.status(200).json(cliente);
 });
 
 app.listen(port, () => {
-    console.log(`🚀 Servidor rodando em http://localhost:${port}`);
-    console.log(`📂 Arquivos: ${BANCO_DADOS.clientes} e ${BANCO_DADOS.produtos}`);
+    console.log(`Servidor rodando em http://localhost:${port}`);
+   
 });

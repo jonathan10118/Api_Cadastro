@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cadastro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d1b69 0%, #0f0f0f 100%);
+            min-height: 100vh;
+            padding: 20px;
+            animation: backgroundShift 10s ease-in-out infinite;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: white;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .tab-button:hover::after {
+            width: 80%;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #4a1d8f;
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a1d8f;
+            box-shadow: 0 0 0 3px rgba(74, 29, 143, 0.2);
+            transform: scale(1.02);
+        }
+
+        input:hover, select:hover {
+            border-color: #a0a0a0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4a1d8f 0%, #1a1a1a 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(74, 29, 143, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .sort-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 4px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .sort-btn {
+            background: transparent;
+            color: #666;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .sort-btn:hover {
+            background: rgba(74, 29, 143, 0.1);
+            color: #4a1d8f;
+        }
+
+        .sort-btn.active {
+            background: #4a1d8f;
+            color: white;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .settings-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+
+        .settings-btn:hover {
+            background: #5a6268;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalBounceIn 0.5s ease;
+        }
+
+        @keyframes modalBounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.7) translateY(-100px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05) translateY(0);
+            }
+            70% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .setting-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .setting-group select:focus {
+            outline: none;
+            border-color: #4a1d8f;
+            box-shadow: 0 0 0 3px rgba(74, 29, 143, 0.2);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .list-container {
+            margin-top: 30px;
+            animation: containerFadeIn 0.6s ease;
+        }
+
+        @keyframes containerFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .list-item {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            font-size: 14px;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+            animation: slideInLeft 0.4s ease backwards;
+        }
+
+        .list-item:nth-child(1) { animation-delay: 0.05s; }
+        .list-item:nth-child(2) { animation-delay: 0.1s; }
+        .list-item:nth-child(3) { animation-delay: 0.15s; }
+        .list-item:nth-child(4) { animation-delay: 0.2s; }
+        .list-item:nth-child(5) { animation-delay: 0.25s; }
+        .list-item:nth-child(n+6) { animation-delay: 0.3s; }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .list-item:hover {
+            border-color: #4a1d8f;
+            box-shadow: 0 4px 15px rgba(74, 29, 143, 0.2);
+            transform: translateX(5px) scale(1.02);
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            border-color: #4a1d8f;
+            box-shadow: 0 0 0 3px rgba(74, 29, 143, 0.2);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-50px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05) translateY(0);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Animações de loading e sucesso */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4a1d8f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite, pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(74, 29, 143, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(74, 29, 143, 0.9);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            display: none;
+        }
+
+        .success-animation.active {
+            display: block;
+            animation: successPop 0.6s ease;
+        }
+
+        @keyframes successPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            background: #4a1d8f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(74, 29, 143, 0.4);
+        }
+
+        .success-checkmark::after {
+            content: '✓';
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        /* Animações de formulários */
+        .form-group {
+            margin-bottom: 20px;
+            animation: fadeInUp 0.5s ease backwards;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Nova animação de entrada para listas */
+        .list-item {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            font-size: 14px;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+            animation: slideInLeft 0.4s ease backwards;
+        }
+
+        .list-item:nth-child(1) { animation-delay: 0.05s; }
+        .list-item:nth-child(2) { animation-delay: 0.1s; }
+        .list-item:nth-child(3) { animation-delay: 0.15s; }
+        .list-item:nth-child(4) { animation-delay: 0.2s; }
+        .list-item:nth-child(5) { animation-delay: 0.25s; }
+        .list-item:nth-child(n+6) { animation-delay: 0.3s; }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .list-item:hover {
+            border-color: #4a1d8f;
+            box-shadow: 0 4px 15px rgba(74, 29, 143, 0.2);
+            transform: translateX(5px) scale(1.02);
+        }
+
+        /* Animações melhoradas para botões */
+        .btn {
+            background: linear-gradient(135deg, #4a1d8f 0%, #1a1a1a 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(74, 29, 143, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        /* Animações para inputs */
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a1d8f;
+            box-shadow: 0 0 0 3px rgba(74, 29, 143, 0.2);
+            transform: scale(1.02);
+        }
+
+        input:hover, select:hover {
+            border-color: #a0a0a0;
+        }
+
+        /* Animações para abas */
+        .tab-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: white;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .tab-button:hover::after {
+            width: 80%;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #4a1d8f;
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Animações para cards de produtos */
+        .product-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: fadeInScale 0.5s ease backwards;
+        }
+
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+        .product-card:nth-child(4) { animation-delay: 0.4s; }
+        .product-card:nth-child(n+5) { animation-delay: 0.5s; }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .product-card:hover {
+            border-color: #4a1d8f;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.25);
+        }
+
+        .product-card.selected {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+            transform: scale(1.02);
+            animation: selectedPulse 0.6s ease;
+        }
+
+        @keyframes selectedPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1.02); }
+        }
+
+        /* Animações para itens do carrinho */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .cart-item:hover {
+            background: rgba(74, 29, 143, 0.05);
+            transform: translateX(-3px);
+        }
+
+        /* Animações para botões de quantidade */
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #4a1d8f;
+            background: white;
+            color: #4a1d8f;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .quantity-btn:hover {
+            background: #4a1d8f;
+            color: white;
+            transform: scale(1.2) rotate(180deg);
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Animações para botões de remover */
+        .cart-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .cart-remove:hover {
+            background: #c82333;
+            transform: scale(1.2) rotate(90deg);
+        }
+
+        /* Animações para mensagens */
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-50px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05) translateY(0);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Animações para modal */
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalBounceIn 0.5s ease;
+        }
+
+        @keyframes modalBounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.7) translateY(-100px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05) translateY(0);
+            }
+            70% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Animações para loading spinner */
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4a1d8f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite, pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(74, 29, 143, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(74, 29, 143, 0.9);
+            }
+        }
+
+        /* Animações para o header */
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: headerSlideDown 0.8s ease;
+        }
+
+        @keyframes headerSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            }
+        }
+
+        /* Animações para background */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d1b69 0%, #0f0f0f 100%);
+            min-height: 100vh;
+            padding: 20px;
+            animation: backgroundShift 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% {
+                background: linear-gradient(135deg, #2d1b69 0%, #0f0f0f 100%);
+            }
+            25% {
+                background: linear-gradient(135deg, #0f0f0f 0%, #2d1b69 100%);
+            }
+            50% {
+                background: linear-gradient(135deg, #1a0e3d 0%, #000000 100%);
+            }
+            75% {
+                background: linear-gradient(135deg, #000000 0%, #2d1b69 100%);
+            }
+        }
+
+        /* Animações para botões de ordenação */
+        .sort-btn {
+            background: transparent;
+            color: #666;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .sort-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #4a1d8f;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .sort-btn:hover::before {
+            width: 100%;
+        }
+
+        .sort-btn:hover {
+            background: rgba(74, 29, 143, 0.1);
+            color: #4a1d8f;
+            transform: translateY(-2px);
+        }
+
+        .sort-btn.active {
+            background: #4a1d8f;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Animações para search box */
+        .search-box input {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #4a1d8f;
+            box-shadow: 0 0 0 3px rgba(74, 29, 143, 0.2);
+            transform: scale(1.02);
+        }
+
+        .search-box input:hover {
+            border-color: #a0a0a0;
+        }
+
+        /* Animações para botões de logout e settings */
+        .logout-btn, .settings-btn {
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .settings-btn:hover {
+            background: #5a6268;
+            transform: scale(1.1) rotate(-15deg);
+        }
+
+        /* Animação de flutuação para elementos importantes */
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Animações para badges */
+        .cart-badge {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            margin-left: 5px;
+            animation: badgePop 0.3s ease;
+        }
+
+        @keyframes badgePop {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.3);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Efeitos de partículas no background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: floatUp 15s infinite linear;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 12s; }
+        .particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 15s; }
+        .particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 18s; }
+        .particle:nth-child(4) { left: 40%; animation-delay: 6s; animation-duration: 14s; }
+        .particle:nth-child(5) { left: 50%; animation-delay: 8s; animation-duration: 16s; }
+        .particle:nth-child(6) { left: 60%; animation-delay: 10s; animation-duration: 13s; }
+        .particle:nth-child(7) { left: 70%; animation-delay: 12s; animation-duration: 17s; }
+        .particle:nth-child(8) { left: 80%; animation-delay: 14s; animation-duration: 15s; }
+        .particle:nth-child(9) { left: 90%; animation-delay: 16s; animation-duration: 19s; }
+        .particle:nth-child(10) { left: 95%; animation-delay: 18s; animation-duration: 14s; }
+
+        /* Efeito de brilho neon nos botões */
+        .btn {
+            background: linear-gradient(135deg, #4a1d8f 0%, #1a1a1a 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(74, 29, 143, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #4a1d8f, #8b5cf6, #4a1d8f);
+            border-radius: 8px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(74, 29, 143, 0.6), 0 0 30px rgba(139, 92, 246, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover::after {
+            opacity: 1;
+            animation: borderGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% {
+                box-shadow: 0 0 5px #4a1d8f, 0 0 10px #4a1d8f, 0 0 15px #4a1d8f;
+            }
+            50% {
+                box-shadow: 0 0 10px #8b5cf6, 0 0 20px #8b5cf6, 0 0 30px #8b5cf6;
+            }
+        }
+
+        /* Efeito 3D nos cards */
+        .list-item, .product-card {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            font-size: 14px;
+            line-height: 1.5;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideInLeft 0.4s ease backwards;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .list-item:hover, .product-card:hover {
+            border-color: #4a1d8f;
+            box-shadow: 0 15px 35px rgba(74, 29, 143, 0.3), 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(10px) translateY(-5px) rotateY(5deg) scale(1.03);
+        }
+
+        /* Efeito de glitch no título */
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            animation: titleGlow 3s ease-in-out infinite, glitch 5s infinite;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes glitch {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            }
+            25% {
+                text-shadow: -2px 0 #4a1d8f, 2px 0 #8b5cf6;
+            }
+            50% {
+                text-shadow: 2px 0 #4a1d8f, -2px 0 #8b5cf6;
+            }
+            75% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), -1px 0 #4a1d8f;
+            }
+        }
+
+        /* Efeito de matrix rain nos inputs */
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a1d8f;
+            box-shadow: 0 0 0 3px rgba(74, 29, 143, 0.2), 0 0 20px rgba(74, 29, 143, 0.4);
+            transform: scale(1.02);
+            animation: matrixPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes matrixPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 3px rgba(74, 29, 143, 0.2), 0 0 20px rgba(74, 29, 143, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3), 0 0 30px rgba(139, 92, 246, 0.6);
+            }
+        }
+
+        /* Efeito de holograma nas abas */
+        .tab-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .tab-button:hover::before {
+            left: 100%;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 25px rgba(255, 255, 255, 0.3), 0 0 30px rgba(74, 29, 143, 0.4);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #4a1d8f;
+            transform: scale(1.1);
+            box-shadow: 0 5px 30px rgba(255, 255, 255, 0.4), 0 0 40px rgba(74, 29, 143, 0.5);
+        }
+
+        /* Efeito de loading avançado */
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 255, 255, 0.1);
+            border-top: 6px solid #4a1d8f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite, pulseGlow 2s ease-in-out infinite, morphing 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        .loading-spinner::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border: 2px solid transparent;
+            border-top: 2px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite reverse;
+        }
+
+        @keyframes morphing {
+            0%, 100% {
+                border-radius: 50%;
+                transform: scale(1);
+            }
+            25% {
+                border-radius: 45%;
+                transform: scale(1.05);
+            }
+            50% {
+                border-radius: 40%;
+                transform: scale(0.95);
+            }
+            75% {
+                border-radius: 45%;
+                transform: scale(1.05);
+            }
+        }
+
+        /* Efeito de typing animation */
+        .typing-effect {
+            overflow: hidden;
+            border-right: 3px solid #4a1d8f;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #4a1d8f; }
+        }
+
+        /* Efeito de onda no background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(74, 29, 143, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(74, 29, 143, 0.2) 0%, transparent 50%);
+            animation: wave 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes wave {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(-20px, -20px) scale(1.1);
+            }
+            66% {
+                transform: translate(20px, -10px) scale(0.9);
+            }
+        }
+
+        /* Efeito de sparkles */
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 2s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes sparkle {
+            0%, 100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Efeito de neon glow nas mensagens */
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: bounceIn 0.5s ease, neonGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes neonGlow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(74, 29, 143, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(74, 29, 143, 0.8), 0 0 30px rgba(139, 92, 246, 0.4);
+            }
+        }
+        @media (max-width: 768px) {
+            .tab-button:hover {
+                transform: translateY(-2px) scale(1.02);
+            }
+           
+            .btn:hover {
+                transform: translateY(-2px) scale(1.02);
+            }
+           
+            .product-card:hover {
+                transform: translateY(-3px) scale(1.02);
+            }
+        }
+
+        /* Animação de shake para erros */
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+
+        /* Animação de pulse para botões */
+        .btn.pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+        }
+
+        /* Estilos para Carrinho de Compras */
+        .cart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .products-section, .cart-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .product-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            border-color: #4a1d8f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .product-card.selected {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            color: #4a1d8f;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .product-stock {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #4a1d8f;
+            background: white;
+            color: #4a1d8f;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .quantity-btn:hover {
+            background: #4a1d8f;
+            color: white;
+        }
+
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            animation: slideIn 0.3s ease;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .cart-item-details {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .cart-item-price {
+            color: #4a1d8f;
+            font-weight: bold;
+        }
+
+        .cart-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .cart-remove:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .cart-summary {
+            border-top: 2px solid #4a1d8f;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .cart-total-amount {
+            color: #4a1d8f;
+            font-size: 24px;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-success {
+            background: #4a1d8f;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .cart-badge {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .cart-container {
+                grid-template-columns: 1fr;
+            }
+           
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+           
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Partículas flutuantes -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    <div class="container">
+        <header>
+            <h1 class="floating">📋 Sistema de Cadastro</h1>
+            <p>Gerencie usuários, clientes e produtos</p>
+            <div id="userInfo" style="display: none; text-align: right; padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 20px;">
+                <span style="margin-right: 15px; color: #333;">👤 <span id="userName"></span></span>
+                <button class="settings-btn" onclick="toggleSettings()" title="Configurações">⚙️</button>
+                <button class="logout-btn" onclick="logout()" title="Sair">🚪</button>
+            </div>
+        </header>
+
+        <div class="tabs" id="mainTabs" style="display: none;">
+            <button class="tab-button active" onclick="showTab('usuarios')">👤 Usuários</button>
+            <button class="tab-button" onclick="showTab('clientes')">👥 Clientes</button>
+            <button class="tab-button" onclick="showTab('produtos')">📦 Produtos</button>
+            <button class="tab-button" onclick="showTab('compras')">🛒 Compras</button>
+            <button class="tab-button" onclick="showTab('login')">🔐 Login</button>
+        </div>
+
+        <!-- Tela Inicial (Login e Cadastro) -->
+        <div id="telaInicial" class="tab-content active">
+            <!-- Botões de alternância -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-flex; background: rgba(255, 255, 255, 0.1); border-radius: 25px; padding: 4px; backdrop-filter: blur(10px);">
+                    <button class="btn" id="btnMostrarLogin" onclick="mostrarApenasLogin()" style="margin: 0; border-radius: 20px; padding: 10px 25px;">🔐 Login</button>
+                    <button class="btn btn-secondary" id="btnMostrarCadastro" onclick="mostrarApenasCadastro()" style="margin: 0; border-radius: 20px; padding: 10px 25px;">👤 Cadastrar</button>
+                </div>
+            </div>
+
+            <div id="containerFormularios" style="display: grid; grid-template-columns: 1fr; gap: 30px;">
+                <!-- Login -->
+                <div id="painelLogin">
+                    <h2>🔐 Login</h2>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email:</label>
+                            <input type="email" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginSenha">Senha:</label>
+                            <input type="password" id="loginSenha" required>
+                        </div>
+                        <button type="submit" class="btn">Entrar</button>
+                    </form>
+                </div>
+
+                <!-- Cadastro -->
+                <div id="painelCadastro" style="display: none;">
+                    <h2>👤 Cadastrar Usuário</h2>
+                    <form id="usuarioForm">
+                        <div class="form-group">
+                            <label for="usuarioCodigo">Código:</label>
+                            <input type="text" id="usuarioCodigo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usuarioNome">Nome:</label>
+                            <input type="text" id="usuarioNome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usuarioEmail">Email:</label>
+                            <input type="email" id="usuarioEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usuarioSenha">Senha:</label>
+                            <input type="password" id="usuarioSenha" required pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                                   title="A senha deve ter no mínimo 8 caracteres, incluindo 1 letra maiúscula, 1 número e 1 caractere especial (@$!%*?&)">
+                            <small style="color: #666; font-size: 12px;">Mínimo 8 caracteres: 1 maiúscula, 1 número, 1 especial (@$!%*?&)</small>
+                        </div>
+                        <button type="submit" class="btn">Cadastrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagens -->
+        <div id="messageContainer"></div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <!-- Success Animation -->
+        <div id="successAnimation" class="success-animation">
+            <div class="success-checkmark"></div>
+        </div>
+
+        <!-- Modal de Configurações -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⚙️ Configurações</h3>
+                    <button class="close-btn" onclick="toggleSettings()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <label for="languageSelect">🌐 Idioma / Language:</label>
+                        <select id="languageSelect" onchange="changeLanguage(this.value)">
+                            <option value="pt">🇧🇷 Português</option>
+                            <option value="en">🇺🇸 English</option>
+                            <option value="es">🇪🇸 Español</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Usuários (Listagem) -->
+        <div id="usuarios" class="tab-content">
+            <div class="list-container">
+                <h3>Usuários</h3>
+                <div class="sort-buttons">
+                    <button class="sort-btn active" onclick="listarUsuarios()">Todos</button>
+                    <button class="sort-btn" onclick="listarUsuariosOrdenados('nome')">A-Z</button>
+                    <button class="sort-btn" onclick="listarUsuariosOrdenados('codigo')">Código</button>
+                    <button class="sort-btn" onclick="listarUsuariosOrdenados('email')">Email</button>
+                </div>
+                <div id="usuariosList"></div>
+            </div>
+        </div>
+
+        <!-- Tab Clientes -->
+        <div id="clientes" class="tab-content">
+            <h2>Clientes</h2>
+            <form id="clienteForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clienteCpf">CPF:</label>
+                        <input type="text" id="clienteCpf" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clienteNome">Nome:</label>
+                        <input type="text" id="clienteNome" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clienteIdade">Idade:</label>
+                        <input type="number" id="clienteIdade" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clienteContato">Contato:</label>
+                        <input type="text" id="clienteContato" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="clienteEndereco">Endereço:</label>
+                    <input type="text" id="clienteEndereco" required>
+                </div>
+                <div class="form-group">
+                    <label for="clienteBairro">Bairro:</label>
+                    <input type="text" id="clienteBairro" required>
+                </div>
+                <button type="submit" class="btn">Cadastrar</button>
+            </form>
+
+            <div class="list-container">
+                <h3>Lista de Clientes</h3>
+                <div class="sort-buttons">
+                    <button class="sort-btn active" onclick="listarClientes()">Todos</button>
+                    <button class="sort-btn" onclick="listarClientesOrdenados('nome')">A-Z</button>
+                    <button class="sort-btn" onclick="listarClientesOrdenados('cpf')">CPF</button>
+                    <button class="sort-btn" onclick="listarClientesOrdenados('idade')">Idade</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchCliente" placeholder="Buscar CPF..." onkeyup="searchCliente()">
+                </div>
+                <div id="clientesList"></div>
+            </div>
+        </div>
+
+        <!-- Tab Produtos -->
+        <div id="produtos" class="tab-content">
+            <h2>Produtos</h2>
+            <form id="produtoForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="produtoId">ID:</label>
+                        <input type="text" id="produtoId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="produtoNome">Nome:</label>
+                        <input type="text" id="produtoNome" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="produtoPreco">Preço:</label>
+                        <input type="number" id="produtoPreco" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="produtoEstoque">Estoque:</label>
+                        <input type="number" id="produtoEstoque" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Cadastrar</button>
+            </form>
+
+            <div class="list-container">
+                <h3>Lista de Produtos</h3>
+                <div class="sort-buttons">
+                    <button class="sort-btn active" onclick="listarProdutos()">Todos</button>
+                    <button class="sort-btn" onclick="listarProdutosOrdenados('nome')">A-Z</button>
+                    <button class="sort-btn" onclick="listarProdutosOrdenados('preco')">Preço</button>
+                    <button class="sort-btn" onclick="listarProdutosOrdenados('estoque')">Estoque</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchProduto" placeholder="Buscar ID..." onkeyup="searchProduto()">
+                </div>
+                <div id="produtosList"></div>
+            </div>
+        </div>
+
+        <!-- Tab Compras -->
+        <div id="compras" class="tab-content">
+            <h2>🛒 Simulação de Compras</h2>
+           
+            <div class="cart-container">
+                <!-- Seção de Produtos -->
+                <div class="products-section">
+                    <h3>📦 Produtos Disponíveis</h3>
+                    <div class="product-grid" id="productGrid">
+                        <!-- Produtos serão carregados aqui -->
+                    </div>
+                </div>
+               
+                <!-- Seção do Carrinho -->
+                <div class="cart-section">
+                    <h3>🛒 Carrinho de Compras <span class="cart-badge floating" id="cartBadge" style="display: none;">0</span></h3>
+                   
+                    <div class="cart-items" id="cartItems">
+                        <div class="empty-cart">
+                            <p>Seu carrinho está vazio</p>
+                            <p>Adicione produtos para começar</p>
+                        </div>
+                    </div>
+                   
+                    <div class="cart-summary" id="cartSummary" style="display: none;">
+                        <div class="cart-total">
+                            <span>Total:</span>
+                            <span class="cart-total-amount" id="cartTotal">R$ 0,00</span>
+                        </div>
+                       
+                        <div class="cart-actions">
+                            <button class="btn btn-secondary" onclick="clearCart()">Esvaziar</button>
+                            <button class="btn btn-success" onclick="finalizePurchase()">Finalizar Compra</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Login -->
+        <div id="login" class="tab-content">
+            <h2>Login do Sistema</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginSenha">Senha:</label>
+                    <input type="password" id="loginSenha" required>
+                </div>
+                <button type="submit" class="btn">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let usuarioLogado = null;
+        let carrinho = [];
+        let produtosDisponiveis = [];
+
+        // Verificar se usuário já está logado ao carregar a página
+        window.addEventListener('load', () => {
+            const usuarioSalvo = localStorage.getItem('usuarioLogado');
+            if (usuarioSalvo) {
+                usuarioLogado = JSON.parse(usuarioSalvo);
+                mostrarInterfacePrincipal();
+            }
+           
+            // Carregar idioma salvo
+            const savedLanguage = localStorage.getItem('language') || 'pt';
+            currentLanguage = savedLanguage;
+            document.getElementById('languageSelect').value = savedLanguage;
+            updateInterfaceLanguage(savedLanguage);
+        });
+
+        // Funções de alternância de visualização
+        function mostrarApenasLogin() {
+            const painelLogin = document.getElementById('painelLogin');
+            const painelCadastro = document.getElementById('painelCadastro');
+            const container = document.getElementById('containerFormularios');
+           
+            // Adicionar animação de transição
+            painelCadastro.style.animation = 'fadeOut 0.3s ease';
+           
+            setTimeout(() => {
+                painelLogin.style.display = 'block';
+                painelCadastro.style.display = 'none';
+                container.style.gridTemplateColumns = '1fr';
+                painelLogin.style.animation = 'fadeIn 0.5s ease';
+            }, 300);
+           
+            // Atualizar botões com estilo toggle
+            document.getElementById('btnMostrarLogin').className = 'btn';
+            document.getElementById('btnMostrarCadastro').className = 'btn btn-secondary';
+        }
+
+        function mostrarApenasCadastro() {
+            const painelLogin = document.getElementById('painelLogin');
+            const painelCadastro = document.getElementById('painelCadastro');
+            const container = document.getElementById('containerFormularios');
+           
+            // Adicionar animação de transição
+            painelLogin.style.animation = 'fadeOut 0.3s ease';
+           
+            setTimeout(() => {
+                painelLogin.style.display = 'none';
+                painelCadastro.style.display = 'block';
+                container.style.gridTemplateColumns = '1fr';
+                painelCadastro.style.animation = 'fadeIn 0.5s ease';
+            }, 300);
+           
+            // Atualizar botões com estilo toggle
+            document.getElementById('btnMostrarLogin').className = 'btn btn-secondary';
+            document.getElementById('btnMostrarCadastro').className = 'btn';
+        }
+
+        // Configurações e Idioma
+        const translations = {
+            pt: {
+                title: "📋 Sistema de Cadastro",
+                subtitle: "Gerencie usuários, clientes e produtos",
+                users: "Usuários",
+                clients: "Clientes",
+                products: "Produtos",
+                login: "Login",
+                register: "Cadastrar",
+                all: "Todos",
+                sortByName: "A-Z",
+                sortByCode: "Código",
+                sortByEmail: "Email",
+                sortByPrice: "Preço",
+                sortByStock: "Estoque",
+                search: "Buscar",
+                settings: "Configurações",
+                language: "Idioma",
+                logout: "Sair"
+            },
+            en: {
+                title: "📋 Registration System",
+                subtitle: "Manage users, clients and products",
+                users: "Users",
+                clients: "Clients",
+                products: "Products",
+                login: "Login",
+                register: "Register",
+                all: "All",
+                sortByName: "A-Z",
+                sortByCode: "Code",
+                sortByEmail: "Email",
+                sortByPrice: "Price",
+                sortByStock: "Stock",
+                search: "Search",
+                settings: "Settings",
+                language: "Language",
+                logout: "Logout"
+            },
+            es: {
+                title: "📋 Sistema de Registro",
+                subtitle: "Gestiona usuarios, clientes y productos",
+                users: "Usuarios",
+                clients: "Clientes",
+                products: "Productos",
+                login: "Inicio",
+                register: "Registrar",
+                all: "Todos",
+                sortByName: "A-Z",
+                sortByCode: "Código",
+                sortByEmail: "Email",
+                sortByPrice: "Precio",
+                sortByStock: "Stock",
+                search: "Buscar",
+                settings: "Configuración",
+                language: "Idioma",
+                logout: "Salir"
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'pt';
+
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            updateInterfaceLanguage(lang);
+            showMessage(translations[lang].settings + ' atualizadas', 'success');
+        }
+
+        function updateInterfaceLanguage(lang) {
+            const t = translations[lang];
+           
+            // Atualizar título e subtítulo
+            document.querySelector('header h1').textContent = t.title;
+            document.querySelector('header p').textContent = t.subtitle;
+           
+            // Atualizar abas
+            document.querySelector('[onclick="showTab(\'usuarios\')"]').textContent = `👤 ${t.users}`;
+            document.querySelector('[onclick="showTab(\'clientes\')"]').textContent = `👥 ${t.clients}`;
+            document.querySelector('[onclick="showTab(\'produtos\')"]').textContent = `📦 ${t.products}`;
+            document.querySelector('[onclick="showTab(\'compras\')"]').textContent = `🛒 Compras`;
+            document.querySelector('[onclick="showTab(\'login\')"]').textContent = `🔐 ${t.login}`;
+           
+            // Atualizar botões de ordenação
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                if (btn.textContent.includes('Todos') || btn.textContent.includes('All')) {
+                    btn.textContent = t.all;
+                }
+            });
+           
+            // Atualizar placeholders
+            document.getElementById('searchCliente').placeholder = `${t.search} CPF...`;
+            document.getElementById('searchProduto').placeholder = `${t.search} ID...`;
+           
+            // Atualizar botões de cadastro
+            document.querySelectorAll('button[type="submit"]').forEach(btn => {
+                if (btn.textContent.includes('Cadastrar')) {
+                    btn.textContent = t.register;
+                }
+            });
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Funções de navegação e controle de acesso
+        function showTab(tabName) {
+            // Só permitir navegação se estiver logado
+            if (!usuarioLogado && tabName !== 'telaInicial') {
+                showMessage('Faça login para acessar esta funcionalidade', 'error');
+                return;
+            }
+
+            // Esconder todas as tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Mostrar a tab selecionada
+            document.getElementById(tabName).classList.add('active');
+           
+            // Ativar o botão correspondente
+            const activeButton = document.querySelector(`[onclick="showTab('${tabName}')"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        function mostrarInterfacePrincipal() {
+            // Esconder a tela inicial
+            document.getElementById('telaInicial').classList.remove('active');
+            // Mostrar as abas principais
+            document.getElementById('mainTabs').style.display = 'flex';
+            // Mostrar informações do usuário
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('userName').textContent = usuarioLogado.nome;
+            // Mostrar a primeira aba (usuários)
+            showTab('usuarios');
+            // Carregar dados iniciais
+            listarUsuarios();
+            listarClientes();
+            listarProdutos();
+            // Carregar produtos para compras
+            carregarProdutosParaCompra();
+        }
+
+        function backToLogin() {
+            // Esconder todas as tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Mostrar apenas a tela inicial
+            document.getElementById('telaInicial').classList.add('active');
+        }
+
+        // Função de logout
+        function logout() {
+            usuarioLogado = null;
+            localStorage.removeItem('usuarioLogado');
+            document.getElementById('mainTabs').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            backToLogin();
+            showMessage('Logout realizado com sucesso', 'success');
+        }
+
+        // Função de mensagens
+        function showMessage(message, type = 'success') {
+            const messageContainer = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            messageContainer.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Funções de animação
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        function showSuccessAnimation() {
+            const successAnim = document.getElementById('successAnimation');
+            successAnim.classList.add('active');
+            setTimeout(() => {
+                successAnim.classList.remove('active');
+            }, 1500);
+        }
+
+        function showErrorAnimation(element) {
+            element.classList.add('shake');
+            setTimeout(() => {
+                element.classList.remove('shake');
+            }, 500);
+        }
+
+        function addPulseAnimation(button) {
+            button.classList.add('pulse');
+            setTimeout(() => {
+                button.classList.remove('pulse');
+            }, 2000);
+        }
+
+        // Funções do Carrinho de Compras
+        async function carregarProdutosParaCompra() {
+            try {
+                const response = await fetch(`${API_BASE}/produtos`);
+                produtosDisponiveis = await response.json();
+                renderizarProdutosParaCompra();
+            } catch (error) {
+                showMessage('Erro ao carregar produtos', 'error');
+            }
+        }
+
+        function renderizarProdutosParaCompra() {
+            const productGrid = document.getElementById('productGrid');
+            productGrid.innerHTML = '';
+
+            produtosDisponiveis.forEach(produto => {
+                if (produto.estoque > 0) {
+                    const productCard = document.createElement('div');
+                    productCard.className = 'product-card';
+                    productCard.innerHTML = `
+                        <div class="product-name">${produto.nome}</div>
+                        <div class="product-price">R$ ${produto.preco.toFixed(2)}</div>
+                        <div class="product-stock">Estoque: ${produto.estoque}</div>
+                        <div class="quantity-control">
+                            <button class="quantity-btn" onclick="alterarQuantidade('${produto.id}', -1)">-</button>
+                            <input type="number" class="quantity-input" id="qty-${produto.id}" value="1" min="1" max="${produto.estoque}" readonly>
+                            <button class="quantity-btn" onclick="alterarQuantidade('${produto.id}', 1)">+</button>
+                        </div>
+                        <button class="btn" style="margin-top: 10px; width: 100%;" onclick="adicionarAoCarrinho('${produto.id}')">
+                            Adicionar
+                        </button>
+                    `;
+                    productGrid.appendChild(productCard);
+                }
+            });
+        }
+
+        function alterarQuantidade(produtoId, delta) {
+            const input = document.getElementById(`qty-${produtoId}`);
+            const produto = produtosDisponiveis.find(p => p.id === produtoId);
+            const novaQuantidade = parseInt(input.value) + delta;
+           
+            if (novaQuantidade >= 1 && novaQuantidade <= produto.estoque) {
+                input.value = novaQuantidade;
+            }
+        }
+
+        function adicionarAoCarrinho(produtoId) {
+            const produto = produtosDisponiveis.find(p => p.id === produtoId);
+            const quantidade = parseInt(document.getElementById(`qty-${produtoId}`).value);
+           
+            const itemExistente = carrinho.find(item => item.id === produtoId);
+           
+            if (itemExistente) {
+                const novaQuantidade = itemExistente.quantidade + quantidade;
+                if (novaQuantidade <= produto.estoque) {
+                    itemExistente.quantidade = novaQuantidade;
+                    showSuccessAnimation();
+                } else {
+                    showMessage('Quantidade excede o estoque disponível', 'error');
+                    return;
+                }
+            } else {
+                carrinho.push({
+                    ...produto,
+                    quantidade: quantidade
+                });
+                showSuccessAnimation();
+            }
+           
+            // Resetar quantidade
+            document.getElementById(`qty-${produtoId}`).value = 1;
+           
+            renderizarCarrinho();
+        }
+
+        function renderizarCarrinho() {
+            const cartItems = document.getElementById('cartItems');
+            const cartSummary = document.getElementById('cartSummary');
+            const cartBadge = document.getElementById('cartBadge');
+            const cartTotal = document.getElementById('cartTotal');
+           
+            if (carrinho.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-cart">
+                        <p>Seu carrinho está vazio</p>
+                        <p>Adicione produtos para começar</p>
+                    </div>
+                `;
+                cartSummary.style.display = 'none';
+                cartBadge.style.display = 'none';
+            } else {
+                cartItems.innerHTML = '';
+                let total = 0;
+                let totalItens = 0;
+               
+                carrinho.forEach((item, index) => {
+                    const subtotal = item.preco * item.quantidade;
+                    total += subtotal;
+                    totalItens += item.quantidade;
+                   
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.nome}</div>
+                            <div class="cart-item-details">${item.quantidade}x R$ ${item.preco.toFixed(2)}</div>
+                        </div>
+                        <div class="cart-item-price">R$ ${subtotal.toFixed(2)}</div>
+                        <button class="cart-remove" onclick="removerDoCarrinho(${index})">✕</button>
+                    `;
+                    cartItems.appendChild(cartItem);
+                });
+               
+                cartTotal.textContent = `R$ ${total.toFixed(2)}`;
+                cartSummary.style.display = 'block';
+               
+                // Atualizar badge
+                if (totalItens > 0) {
+                    cartBadge.textContent = totalItens;
+                    cartBadge.style.display = 'inline-block';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            }
+        }
+
+        function removerDoCarrinho(index) {
+            carrinho.splice(index, 1);
+            renderizarCarrinho();
+            showMessage('Produto removido do carrinho', 'success');
+        }
+
+        function clearCart() {
+            if (carrinho.length === 0) return;
+           
+            if (confirm('Tem certeza que deseja esvaziar o carrinho?')) {
+                carrinho = [];
+                renderizarCarrinho();
+                showMessage('Carrinho esvaziado', 'success');
+            }
+        }
+
+        function finalizePurchase() {
+            if (carrinho.length === 0) {
+                showMessage('Seu carrinho está vazio', 'error');
+                return;
+            }
+           
+            const total = carrinho.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+           
+            // Simulação de finalização
+            showLoading();
+           
+            setTimeout(() => {
+                hideLoading();
+                showSuccessAnimation();
+               
+                // Criar resumo da compra
+                let resumo = '🛒 COMPRA FINALIZADA COM SUCESSO!\n\n';
+                resumo += `Cliente: ${usuarioLogado ? usuarioLogado.nome : 'Visitante'}\n`;
+                resumo += `Data: ${new Date().toLocaleString('pt-BR')}\n\n`;
+                resumo += 'ITENS COMPRADOS:\n';
+               
+                carrinho.forEach(item => {
+                    resumo += `- ${item.nome}: ${item.quantidade}x R$ ${item.preco.toFixed(2)} = R$ ${(item.preco * item.quantidade).toFixed(2)}\n`;
+                });
+               
+                resumo += `\nTOTAL: R$ ${total.toFixed(2)}`;
+               
+                alert(resumo);
+               
+                // Limpar carrinho
+                carrinho = [];
+                renderizarCarrinho();
+               
+                // Atualizar estoque (simulação)
+                showMessage('Compra finalizada com sucesso!', 'success');
+            }, 2000);
+        }
+
+        // Função para criar sparkles aleatórios
+        function createSparkle(element) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * 100 + '%';
+            sparkle.style.top = Math.random() * 100 + '%';
+            sparkle.style.animationDelay = Math.random() * 2 + 's';
+            element.appendChild(sparkle);
+           
+            setTimeout(() => {
+                sparkle.remove();
+            }, 2000);
+        }
+
+        // Adicionar sparkles aos botões em hover
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => createSparkle(btn), i * 200);
+                    }
+                });
+            });
+
+            // Adicionar efeito de typing ao título
+            const title = document.querySelector('header h1');
+            if (title) {
+                title.classList.add('typing-effect');
+                setTimeout(() => {
+                    title.classList.remove('typing-effect');
+                }, 3000);
+            }
+
+            // Criar sparkles periódicos no header
+            setInterval(() => {
+                const header = document.querySelector('header');
+                if (header) {
+                    createSparkle(header);
+                }
+            }, 3000);
+        });
+
+        // Efeito de onda no mouse move
+        document.addEventListener('mousemove', (e) => {
+            const wave = document.createElement('div');
+            wave.style.position = 'fixed';
+            wave.style.left = e.clientX + 'px';
+            wave.style.top = e.clientY + 'px';
+            wave.style.width = '10px';
+            wave.style.height = '10px';
+            wave.style.background = 'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)';
+            wave.style.borderRadius = '50%';
+            wave.style.pointerEvents = 'none';
+            wave.style.transform = 'translate(-50%, -50%)';
+            wave.style.animation = 'ripple 1s ease-out';
+            wave.style.zIndex = '9998';
+            document.body.appendChild(wave);
+           
+            setTimeout(() => {
+                wave.remove();
+            }, 1000);
+        });
+
+        // Adicionar animação de ripple
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                0% {
+                    width: 10px;
+                    height: 10px;
+                    opacity: 1;
+                }
+                100% {
+                    width: 50px;
+                    height: 50px;
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+           
+            const login = {
+                email: document.getElementById('loginEmail').value,
+                senha: document.getElementById('loginSenha').value
+            };
+
+            // Mostrar animação de loading
+            showLoading();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            addPulseAnimation(submitButton);
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(login)
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (response.ok) {
+                    showSuccessAnimation();
+                    showMessage(data.mensagem, 'success');
+                    usuarioLogado = data.usuario;
+                    localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+                    setTimeout(() => {
+                        mostrarInterfacePrincipal();
+                    }, 800);
+                    document.getElementById('loginForm').reset();
+                } else {
+                    showErrorAnimation(e.target);
+                    showMessage(data.error || 'Erro ao fazer login', 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showErrorAnimation(e.target);
+                showMessage('Erro de conexão com o servidor', 'error');
+            }
+        });
+
+        // Usuários
+        document.getElementById('usuarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+           
+            const usuario = {
+                codigo: document.getElementById('usuarioCodigo').value,
+                nome: document.getElementById('usuarioNome').value,
+                email: document.getElementById('usuarioEmail').value,
+                senha: document.getElementById('usuarioSenha').value
+            };
+
+            // Mostrar animação de loading
+            showLoading();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/usuarios', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(usuario)
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (response.ok) {
+                    showMessage(data.mensagem, 'success');
+                    document.getElementById('usuarioForm').reset();
+                    loadUsuarios();
+                } else {
+                    showMessage(data.error || 'Erro ao cadastrar usu�rio', 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showMessage('Erro de conex�o com o servidor', 'error');
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
