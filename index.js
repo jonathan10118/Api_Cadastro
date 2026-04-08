@@ -10,8 +10,10 @@ app.use(express.json());
 // --- CONFIGURAÇÃO DE CAMINHOS ---
 const BANCO_DADOS = {
     clientes: path.join(__dirname, 'clientes.json'),
-    produtos: path.join(__dirname, 'produtos.json')
+    produtos: path.join(__dirname, 'produtos.json'),
+    usuarios: path.join(__dirname, 'usuarios.json')
 };
+
 
 // --- FUNÇÕES AUXILIARES UNIVERSAIS ---
 
@@ -73,6 +75,16 @@ app.post('/clientes', (req, res) => {
     } else {
         res.status(500).json({ error: 'Erro ao salvar cliente.' });
     }
+    // Busca cliente individual por CPF
+app.get('/clientes/:cpf', (req, res) => {
+    const clientes = lerDados('clientes');
+    const cliente = clientes.find(c => String(c.cpf) === String(req.params.cpf));
+    
+    if (!cliente) {
+        return res.status(404).json({ error: 'Cliente não encontrado.' });
+    }
+    res.json(cliente);
+});
 });
 
 // --- ROTAS DE PRODUTOS ---
@@ -119,28 +131,93 @@ app.get('/produtos/:id', (req, res) => {
 
 // --- ROTAS DE BUSCA ESPECÍFICA ---
 
-// Busca cliente individual por CPF
-app.get('/clientes/:cpf', (req, res) => {
-    const clientes = lerDados('clientes');
-    const cliente = clientes.find(c => String(c.cpf) === String(req.params.cpf));
-    
-    if (!cliente) {
-        return res.status(404).json({ error: 'Cliente não encontrado.' });
-    }
-    res.json(cliente);
+// --- ROTAS DE USUÁRIOS ---
+
+// Listar usuários
+app.get('/usuarios', (req, res) => {
+    res.json(lerDados('usuarios'));
 });
 
-// Busca produto individual por ID (Caso queira reforçar ou substituir a existente)
-app.get('/produtos/:id', (req, res) => {
-    const produtos = lerDados('produtos');
-    const produto = produtos.find(p => String(p.id) === String(req.params.id));
-    
-    if (!produto) {
-        return res.status(404).json({ error: 'Produto não encontrado.' });
+// Cadastrar usuário
+app.post('/usuarios', (req, res) => {
+    const { id, nome, email, senha } = req.body;
+
+    if (!id || !nome || !email || !senha) {
+        return res.status(400).json({ error: 'Dados obrigatórios: id, nome, email, senha' });
     }
-    res.json(produto);
+
+    const usuarios = lerDados('usuarios');
+
+    // Verifica se email já existe
+    if (usuarios.some(u => u.email === email)) {
+        return res.status(400).json({ error: 'Email já cadastrado.' });
+    }
+
+    const novoUsuario = {
+        id: String(id),
+        nome,
+        email,
+        senha
+    };
+
+    usuarios.push(novoUsuario);
+
+    if (salvarDados('usuarios', usuarios)) {
+        res.status(201).json({ mensagem: 'Usuário cadastrado!', usuario: novoUsuario });
+    } else {
+        res.status(500).json({ error: 'Erro ao salvar usuário.' });
+    }
 });
-// --- INICIALIZAÇÃO ---
+
+// Buscar usuário por ID
+app.get('/usuarios/:id', (req, res) => {
+    const usuarios = lerDados('usuarios');
+    const usuario = usuarios.find(u => String(u.id) === String(req.params.id));
+
+    if (!usuario) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    res.json(usuario);
+});
+
+// Login
+app.post('/login', (req, res) => {
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+        return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+    }
+
+    const usuarios = lerDados('usuarios');
+
+    const usuario = usuarios.find(
+        u => u.email === email && u.senha === senha
+    );
+
+    if (!usuario) {
+        return res.status(401).json({ error: 'Email ou senha incorretos' });
+    }
+
+    res.status(200).json({
+        mensagem: 'Login realizado com sucesso',
+        usuario
+    });
+});
+
+
+app.post('/login',(req, res)=>{ 
+
+    const { email, senha } = read.body;
+    const usuarios = lerUsuarios();
+    const usuario = usuarios.find(u => u.email === email && u.senha === senha);
+    
+    if (!usuario){
+        return res.status(401).json({error: 'Email ou senha incorreto'});
+    }
+     res.status(200).json({message:'login realizado com sucesso', usuario});
+
+});
 
 app.listen(port, () => {
     console.log(`🚀 Servidor rodando em http://localhost:${port}`);
